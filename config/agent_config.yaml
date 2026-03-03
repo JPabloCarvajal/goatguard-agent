@@ -1,0 +1,16 @@
+collector:
+  host: "192.168.1.100"
+  tcp_port: 9999
+  udp_port: 9998
+
+intervals:
+  metrics_seconds: 5
+  heartbeat_seconds: 30
+  arp_scan_seconds: 60
+
+capture:
+  interface: "eth0"
+
+logging:
+  level: "INFO"
+  file: "goatguard_agent.log"
