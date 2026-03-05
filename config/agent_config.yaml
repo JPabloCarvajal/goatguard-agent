@@ -9,7 +9,7 @@ intervals:
   arp_scan_seconds: 60
 
 capture:
-  interface: "eth0"
+  interface: "auto"
 
 logging:
   level: "INFO"
