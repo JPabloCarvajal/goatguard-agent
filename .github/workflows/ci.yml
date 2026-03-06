@@ -1,0 +1,43 @@
+name: Agent CI
+
+# se ejecuta en cada push y pull request a develop y main
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  test:
+    # Matrix: corre los tests en Windows y Ubuntu
+    # porque el agente debe funcionar en ambos como minimo por ahorita (lazy bastard)
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      # 1. Descargar el código del repositorio
+      - uses: actions/checkout@v4
+
+      # 2. Instalar Python 3.11
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # 3. Instalar dependencias
+      - name: Install dependencies
+        run: |
+          pip install pyyaml psutil scapy rich
+          pip install pytest ruff
+
+      # 4. Correr el linter (verifica estilo de código)
+      - name: Run linter
+        run: ruff check src/
+
+      # 5. Correr los tests
+      - name: Run tests
+        env:
+          PYTHONPATH: src
+        run: pytest tests/ -v
