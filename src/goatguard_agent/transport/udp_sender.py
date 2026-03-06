@@ -13,7 +13,6 @@ OSI layers:   L3 (IP addressing), L4 (UDP transport), L7 (JSON payload)
 import json
 import logging
 import socket
-from dataclasses import asdict
 
 logger = logging.getLogger(__name__)
 
