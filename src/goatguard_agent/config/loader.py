@@ -18,6 +18,8 @@ from goatguard_agent.config.models import (
     ConfigError,
     IntervalsConfig,
     LoggingConfig,
+    SlicingConfig,
+    SlicingRule,
 )
 from goatguard_agent.config.validator import validate_config
 
@@ -98,6 +100,7 @@ def _build_config(raw: dict) -> AgentConfig:
     Uses .get(key, default) so that missing YAML sections
     or fields gracefully fall back to defaults.
     """
+
     collector_data = raw.get("collector", {})
     collector = CollectorConfig(
         host=collector_data.get("host", "192.168.1.100"),
@@ -123,9 +126,22 @@ def _build_config(raw: dict) -> AgentConfig:
         file=logging_data.get("file", "goatguard_agent.log"),
     )
 
+    slicing_data = raw.get("slicing", {})    
+    slicing_rules = []
+    for rule_data in slicing_data.get("rules", []):
+        slicing_rules.append(SlicingRule(
+            ports=rule_data.get("ports", []),
+            snap_len=rule_data.get("snap_len", 96),
+        ))
+    slicing = SlicingConfig(
+        default_snap_len=slicing_data.get("default_snap_len", 96),
+        rules=slicing_rules,
+    )
+
     return AgentConfig(
         collector=collector,
         intervals=intervals,
         capture=capture,
         logging=logging_cfg,
+        slicing=slicing,
     )

@@ -41,6 +41,16 @@ class LoggingConfig:
     level: str = "INFO"
     file: str = "goatguard_agent.log"
 
+@dataclass
+class SlicingRule:
+    ports: list = field(default_factory=list)
+    snap_len: int = 96
+
+
+@dataclass
+class SlicingConfig:
+    default_snap_len: int = 96
+    rules: list = field(default_factory=list)
 
 @dataclass
 class AgentConfig:
@@ -56,3 +66,4 @@ class AgentConfig:
     intervals: IntervalsConfig = field(default_factory=IntervalsConfig)
     capture: CaptureConfig = field(default_factory=CaptureConfig)
     logging: LoggingConfig = field(default_factory=LoggingConfig)
+    slicing: SlicingConfig = field(default_factory=SlicingConfig)

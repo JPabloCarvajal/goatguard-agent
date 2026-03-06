@@ -1,5 +1,5 @@
 collector:
-  host: "192.168.1.100"
+  host: "127.0.0.1"
   tcp_port: 9999
   udp_port: 9998
 
@@ -14,3 +14,13 @@ capture:
 logging:
   level: "INFO"
   file: "goatguard_agent.log"
+
+slicing:
+  default_snap_len: 96
+  rules:
+    - ports: [53]
+      snap_len: 300
+    - ports: [80]
+      snap_len: 300
+    - ports: [443]
+      snap_len: 300

@@ -239,16 +239,6 @@ def generate_agent_id(interface_name: str = "auto") -> str:
 
     return agent_id
 
-if __name__ == "__main__":
-    logging.basicConfig(level=logging.DEBUG)
-    
-    try:
-        agent_id = generate_agent_id()
-        print(f"\nAgent ID: {agent_id}")
-    except IdentityError as e:
-        print(f"ERROR: {e}")
-
-
 """
 generate_agent_id("auto")          ← ÚNICA función que el mundo exterior llama
     │

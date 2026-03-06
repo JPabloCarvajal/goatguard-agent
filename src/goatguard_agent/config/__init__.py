@@ -12,5 +12,7 @@ from goatguard_agent.config.models import (
     ConfigError,
     IntervalsConfig,
     LoggingConfig,
+    SlicingConfig,
+    SlicingRule,
 )
 from goatguard_agent.config.loader import load_config

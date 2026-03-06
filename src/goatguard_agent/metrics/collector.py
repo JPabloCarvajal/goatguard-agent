@@ -43,13 +43,3 @@ def _get_link_speed(interface_name: str) -> int:
             return info.speed
 
     return 0
-
-if __name__ == "__main__":
-    metrics = collect_metrics()
-    print(f"\nSystem Metrics:")
-    print(f"  CPU: {metrics.cpu_percent}% ({metrics.cpu_count} cores)")
-    print(f"  RAM: {metrics.ram_percent}% of {round(metrics.ram_total_bytes / (1024**3), 2)} GB")
-    print(f"  RAM available: {round(metrics.ram_available_bytes / (1024**3), 2)} GB")
-    print(f"  Disk: {metrics.disk_usage_percent}%")
-    print(f"  Link speed: {metrics.link_speed_mbps} Mbps")
-    print(f"  Uptime: {round(metrics.uptime_seconds / 3600, 1)} hours")

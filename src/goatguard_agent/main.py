@@ -20,6 +20,11 @@ from goatguard_agent.config import load_config, ConfigError
 from goatguard_agent.identity import generate_agent_id, IdentityError
 from goatguard_agent.metrics.collector import collect_metrics
 from goatguard_agent.transport.udp_sender import UdpSender
+from goatguard_agent.capture.packet_capture import PacketCapture
+from goatguard_agent.capture.sanitizer import PacketSanitizer
+from goatguard_agent.capture.buffer import PacketBuffer
+from goatguard_agent.transport.tcp_sender import TcpSender
+
 
 logger = logging.getLogger("goatguard_agent.main")
 
@@ -53,17 +58,40 @@ class GoatGuardAgent:
         self.config = config
         self.agent_id = ""
         self.udp_sender = None
+        self.tcp_sender = None
+        self.packet_capture = None
+        self.sanitizer = None
+        self.buffer = None
         self._running = False
 
     def initialize(self) -> None:
-            """Set up identity and network connections."""
-            self.agent_id = generate_agent_id(self.config.capture.interface)
+            """Set up identity and network connections.""" 
+            self.interface_name = self.config.capture.interface
+            self.agent_id = generate_agent_id(self.interface_name)
+
             logger.info(f"Agent ID: {self.agent_id}")
 
             self.udp_sender = UdpSender(
                 host=self.config.collector.host,
                 port=self.config.collector.udp_port,
             )
+            self.tcp_sender = TcpSender(
+                host=self.config.collector.host,
+                port=self.config.collector.tcp_port,
+            )
+
+            self.sanitizer = PacketSanitizer(
+                default_snap_len=self.config.slicing.default_snap_len,
+                rules=self.config.slicing.rules,
+            )
+
+            self.buffer = PacketBuffer(max_size=10000)
+
+            self.packet_capture = PacketCapture(
+                interface=self.interface_name,
+                callback=self._handle_packet,
+            )
+            self.packet_capture.start()
 
     def run(self) -> None:
         """Start the main agent loop."""
@@ -74,6 +102,7 @@ class GoatGuardAgent:
 
         last_metrics_time = 0.0
         last_heartbeat_time = 0.0
+        last_flush_time = 0.0
 
         try:
             while self._running:
@@ -86,6 +115,10 @@ class GoatGuardAgent:
                 if now - last_heartbeat_time >= self.config.intervals.heartbeat_seconds:
                     self._send_heartbeat()
                     last_heartbeat_time = now
+                
+                if now - last_flush_time >= 1.0:
+                    self._flush_and_send()
+                    last_flush_time = now
 
                 time.sleep(0.5)
 
@@ -97,7 +130,7 @@ class GoatGuardAgent:
     def _send_metrics(self) -> None:
         """Collect system metrics and send them via UDP."""
         try:
-            metrics = collect_metrics(self.config.capture.interface)
+            metrics = collect_metrics(self.interface_name)
             payload = asdict(metrics)
             payload["agent_id"] = self.agent_id
             self.udp_sender.send(payload)
@@ -119,12 +152,35 @@ class GoatGuardAgent:
         except Exception as e:
             logger.error(f"Failed to send heartbeat: {e}")
 
+    def _flush_and_send(self) -> None:
+        """Flush buffer and send packets to collector via TCP."""
+        packets = self.buffer.flush()
+        if not packets:
+            return
+
+        if not self.tcp_sender.send_batch(packets):
+            logger.warning(f"Failed to send {len(packets)} packets, will retry")
+
+
     def shutdown(self) -> None:
         """Clean shutdown: close connections and free resources."""
         self._running = False
+        if self.packet_capture:
+            self.packet_capture.stop()
+        if self.tcp_sender:
+            self.tcp_sender.close()
         if self.udp_sender:
             self.udp_sender.close()
         logger.info("Agent stopped")
+
+    
+    def _handle_packet(self, packet) -> None:
+        """Callback: sanitize captured packet and store in buffer."""
+        try:
+            sanitized = self.sanitizer.sanitize(packet)
+            self.buffer.put(sanitized)
+        except Exception as e:
+            logger.error(f"Error processing packet: {e}")
 
 def main() -> None:
     """Entry point for the GOATGuard agent."""
@@ -132,6 +188,7 @@ def main() -> None:
         config = load_config()
         setup_logging(config.logging.level, config.logging.file)
 
+        
         agent = GoatGuardAgent(config)
         agent.run()
 
