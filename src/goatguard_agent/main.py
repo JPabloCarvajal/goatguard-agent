@@ -12,7 +12,6 @@ any low-level work itself (Single Responsibility Principle).
 
 import logging
 import time
-import signal
 import sys
 from dataclasses import asdict
 
@@ -147,7 +146,7 @@ class GoatGuardAgent:
                 "timestamp": time.time(),
             }
             self.udp_sender.send(heartbeat)
-            logger.debug(f"Heartbeat sent")
+            logger.debug("Heartbeat sent")
 
         except Exception as e:
             logger.error(f"Failed to send heartbeat: {e}")

@@ -37,7 +37,7 @@ import logging
 import time
 from dataclasses import dataclass
 
-from scapy.all import raw, IP, TCP, UDP
+from scapy.all import raw, TCP, UDP
 
 logger = logging.getLogger(__name__)
 

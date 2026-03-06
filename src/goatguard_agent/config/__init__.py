@@ -6,13 +6,13 @@ Usage:
 """
 
 from goatguard_agent.config.models import (
-    AgentConfig,
-    CaptureConfig,
-    CollectorConfig,
-    ConfigError,
-    IntervalsConfig,
-    LoggingConfig,
-    SlicingConfig,
-    SlicingRule,
+    AgentConfig as AgentConfig,
+    CaptureConfig as CaptureConfig,
+    CollectorConfig as CollectorConfig,
+    ConfigError as ConfigError,
+    IntervalsConfig as IntervalsConfig,
+    LoggingConfig as LoggingConfig,
+    SlicingConfig as SlicingConfig,
+    SlicingRule as SlicingRule,
 )
-from goatguard_agent.config.loader import load_config
+from goatguard_agent.config.loader import load_config as load_config
