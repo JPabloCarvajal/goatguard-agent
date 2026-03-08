@@ -8,10 +8,10 @@ Integrative Project III — UPB
 ```
 ┌──────────────┐     UDP (JSON metrics)        ┌──────────────┐
 │              │ ──────────────────────────►   │              │
-│   Endpoint   │                              │  Collector   │
+│   Endpoint   │                               │  Collector   │
 │   (Agent)    │  TCP (sanitized packets)      │  (Backend)   │
 │              │ ──────────────────────────►   │              │
-└──────────────┘                              └──────────────┘
+└──────────────┘                               └──────────────┘
 
 The agent runs 4 tasks in parallel:
 - Continuous network traffic capture (separate thread)
@@ -31,15 +31,37 @@ The agent runs 4 tasks in parallel:
 ```bash
 git clone https://github.com/JPabloCarvajal/goatguard-agent.git
 cd goatguard-agent
+```
+
+### Windows
+```powershell
+pip install pyyaml psutil scapy rich
+```
+
+### Linux (Ubuntu/Debian)
+```bash
+sudo apt install python3-full python3.12-venv libpcap-dev
+python3 -m venv .venv
+source .venv/bin/activate
 pip install pyyaml psutil scapy rich
 ```
 
 ## Usage
 
 Edit `config/agent_config.yaml` with the collector IP, then run:
-```bash
+
+### Windows
+```powershell
 python run.py
 ```
+
+### Linux
+```bash
+source .venv/bin/activate
+sudo PYTHONPATH=src .venv/bin/python3 run.py
+```
+
+> **Note:** On Linux, `sudo` is required because raw packet capture needs root privileges. The virtual environment path is specified explicitly so `sudo` can find the installed packages.
 
 The agent identifies itself automatically, detects the primary network interface, and starts capturing traffic and sending metrics.
 
