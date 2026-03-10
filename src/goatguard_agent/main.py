@@ -86,9 +86,16 @@ class GoatGuardAgent:
 
             self.buffer = PacketBuffer(max_size=10000)
 
+            bpf_filter = (
+                f"not (host {self.config.collector.host} and "
+                f"(port {self.config.collector.tcp_port} or "
+                f"port {self.config.collector.udp_port}))"
+            )
+
             self.packet_capture = PacketCapture(
                 interface=self.interface_name,
                 callback=self._handle_packet,
+                bpf_filter=bpf_filter,
             )
             self.packet_capture.start()
 

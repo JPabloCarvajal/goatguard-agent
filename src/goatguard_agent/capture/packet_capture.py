@@ -38,9 +38,10 @@ class PacketCapture:
                   Receives one argument: the scapy packet.
     """
 
-    def __init__(self, interface: str, callback: Callable) -> None:
+    def __init__(self, interface: str, callback: Callable, bpf_filter: str = "") -> None:
         self.interface = interface if interface != "auto" else None
         self.callback = callback
+        self.bpf_filter = bpf_filter
         self._thread = None
         self._running = False
     
@@ -72,6 +73,7 @@ class PacketCapture:
                 prn=self.callback,
                 store=False,
                 stop_filter=lambda _: not self._running,
+                filter=self.bpf_filter if self.bpf_filter else None,
             )
         except Exception as e:
             logger.error(f"Capture error: {e}")
