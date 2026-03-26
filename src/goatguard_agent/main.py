@@ -23,7 +23,7 @@ from goatguard_agent.capture.packet_capture import PacketCapture
 from goatguard_agent.capture.sanitizer import PacketSanitizer
 from goatguard_agent.capture.buffer import PacketBuffer
 from goatguard_agent.transport.tcp_sender import TcpSender
-
+from goatguard_agent.consent import check_consent, request_consent
 
 logger = logging.getLogger("goatguard_agent.main")
 
@@ -189,12 +189,15 @@ class GoatGuardAgent:
             logger.error(f"Error processing packet: {e}")
 
 def main() -> None:
-    """Entry point for the GOATGuard agent."""
     try:
+        # Legal requirement: consent BEFORE any data capture
+        if not check_consent():
+            if not request_consent():
+                return
+
         config = load_config()
         setup_logging(config.logging.level, config.logging.file)
 
-        
         agent = GoatGuardAgent(config)
         agent.run()
 
