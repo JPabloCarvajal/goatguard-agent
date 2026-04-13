@@ -189,6 +189,16 @@ class GoatGuardAgent:
             logger.error(f"Error processing packet: {e}")
 
 def main() -> None:
+    # ┌─────────────────┬─────────┬──────────────────────────────────────────────┐
+    # │ Ley             │ Art.    │ Impacto en GOATGuard                         │
+    # ├─────────────────┼─────────┼──────────────────────────────────────────────┤
+    # │ Ley 1273/2009   │ 269A    │ Agente requiere autorizacion del dueño       │
+    # │ Ley 1273/2009   │ 269C    │ Captura de paquetes requiere facultacion     │
+    # │ Ley 1581/2012   │ Art. 4  │ Usuarios deben consentir el monitoreo        │
+    # │ Ley 1581/2012   │ Art. 6  │ Excepcion academica con anonimizacion        │
+    # │ Decreto 1377/13 │ Art. 3  │ Aviso de privacidad antes de recopilar       │
+    # │ Ley 2466/2025   │ Monit.  │ Consentimiento explicito del trabajador      │
+    # └─────────────────┴─────────┴──────────────────────────────────────────────┘
     try:
         # Legal requirement: consent BEFORE any data capture
         if not check_consent():
@@ -198,8 +208,27 @@ def main() -> None:
         config = load_config()
         setup_logging(config.logging.level, config.logging.file)
 
-        agent = GoatGuardAgent(config)
-        agent.run()
+        use_gui = "--gui" in sys.argv
+
+        if use_gui:
+            from goatguard_agent.gui import AgentGUI
+
+            gui = AgentGUI()
+
+            # Add GUI handler so logs appear in the window
+            root_logger = logging.getLogger("goatguard_agent")
+            root_logger.addHandler(gui.get_handler())
+
+            gui.set_status("CONNECTED", "#10b981")
+
+            def run_agent():
+                agent = GoatGuardAgent(config)
+                agent.run()
+
+            gui.run(run_agent)
+        else:
+            agent = GoatGuardAgent(config)
+            agent.run()
 
     except ConfigError as e:
         print(f"[CONFIG ERROR] {e}")
